@@ -519,8 +519,9 @@ exports.default = {
 
         this.updateConfig();
         this.fetchData();
-        this.bus.$on('update-pagination-items', function () {
-            _this2.fetchData();
+        this.bus.$on('update-pagination-items', function (page) {
+            page = page || _this2.current_page;
+            _this2.fetchData(_this2.resourceUrl + '?page=' + page);
         });
     }
 };

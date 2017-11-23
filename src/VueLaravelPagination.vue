@@ -252,8 +252,9 @@
         created() {
             this.updateConfig();
             this.fetchData();
-            this.bus.$on('update-pagination-items', () => {
-                this.fetchData();
+            this.bus.$on('update-pagination-items', (page) => {
+                page = page || this.current_page;
+                this.fetchData(`${this.resourceUrl}?page=${page}`);
             });
         }
     }
