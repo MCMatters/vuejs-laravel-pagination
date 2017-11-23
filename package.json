@@ -1,6 +1,6 @@
 {
     "name": "vuejs-laravel-pagination",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "A Vue.js plugin to easily integrate pagination with Laravel.",
     "author": "Dmitry Borzyonok",
     "license": "MIT",
