@@ -291,9 +291,6 @@ Object.defineProperty(exports, "__esModule", {
 //
 //
 //
-//
-//
-//
 
 exports.default = {
     props: {
@@ -311,7 +308,9 @@ exports.default = {
         bus: {
             type: Object,
             default: function _default() {
-                return VueBus || eventHub || {};
+                return VueBus || {
+                    $on: function $on() {}
+                };
             }
         }
     },
@@ -354,7 +353,7 @@ exports.default = {
 
                 _this.handleResponseData(data);
             }).catch(function (response) {
-                console.log('Fetching data failed.', response);
+                _this.$emit('failed', response);
             });
         },
         handleResponseData: function handleResponseData(response) {

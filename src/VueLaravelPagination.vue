@@ -2,20 +2,17 @@
     <ul class="pagination vl-pagination"
         v-show="!config.hideIfEmpty || !(config.hideIfEmpty && !next_page_url && !prev_page_url)">
         <li :class="{ disabled: current_page == 1 }">
-            <span v-if="current_page == 1"
-                  v-html="config.previous_button_text"></span>
+            <span v-if="current_page == 1" v-html="config.previous_button_text"></span>
             <a href="#" rel="prev"
                v-else
                @click.prevent="fetchData(prev_page_url)"
                v-html="config.previous_button_text">
             </a>
         </li>
-        <li v-for="el in elements"
-            :class="{ disabled: el.key == 'divider', active: el.key == current_page}">
+        <li v-for="el in elements" :class="{ disabled: el.key == 'divider', active: el.key == current_page}">
             <span v-if="el.key == current_page">{{ el.key }}</span>
             <span v-else-if="el.key === 'divider'">{{ el.item }}</span>
-            <a href="#" v-else @click.prevent="fetchData(el.item)">{{ el.key
-                }}</a>
+            <a href="#" v-else @click.prevent="fetchData(el.item)">{{ el.key }}</a>
         </li>
         <li :class="{ disabled: current_page == last_page }">
             <a href="#" rel="next"
@@ -45,7 +42,7 @@
             bus: {
                 type: Object,
                 default() {
-                    return VueBus || eventHub || {};
+                    return VueBus || { $on() {} };
                 }
             }
         },
@@ -84,7 +81,7 @@
                         this.handleResponseData(data);
                     })
                     .catch(response => {
-                        console.log('Fetching data failed.', response);
+                        this.$emit('failed', response);
                     });
             },
 
