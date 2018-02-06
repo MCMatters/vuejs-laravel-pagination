@@ -345,6 +345,8 @@ exports.default = {
                 url = _transformPageUrl.url,
                 params = _transformPageUrl.params;
 
+            this.$emit('beforeRequest');
+
             axios.get(url, {
                 headers: this.config.headers,
                 params: Object.assign({}, params, this.config.params)
@@ -394,6 +396,10 @@ exports.default = {
             return { url: splitUrl[0], params: {} };
         },
         getNestedValue: function getNestedValue(object, path) {
+            if (!path) {
+                return object;
+            }
+
             var originalPath = path;
             path = path.split('.');
             var response = object;

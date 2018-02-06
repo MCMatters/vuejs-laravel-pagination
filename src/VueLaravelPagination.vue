@@ -72,6 +72,8 @@
             fetchData(pageUrl) {
                 const { url, params } = this.transformPageUrl(pageUrl);
 
+                this.$emit('beforeRequest');
+
                 axios
                     .get(url, {
                         headers: this.config.headers,
@@ -131,6 +133,10 @@
             },
 
             getNestedValue(object, path) {
+                if (!path) {
+                    return object;
+                }
+
                 const originalPath = path;
                 path = path.split('.');
                 let response = object;
