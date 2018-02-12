@@ -25,7 +25,7 @@
     </ul>
 </template>
 
-<script>
+<script type="text/javascript">
     export default {
         props: {
             resourceUrl: {
@@ -37,6 +37,13 @@
                 required: false,
                 default() {
                     return {};
+                }
+            },
+            axios: {
+                type: Object,
+                required: false,
+                default() {
+                    return window.axios;
                 }
             },
             bus: {
@@ -74,7 +81,7 @@
 
                 this.$emit('beforeRequest');
 
-                axios
+                this.axios
                     .get(url, {
                         headers: this.config.headers,
                         params: Object.assign({}, params, this.config.params),

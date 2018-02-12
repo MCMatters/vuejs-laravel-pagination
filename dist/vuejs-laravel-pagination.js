@@ -305,6 +305,13 @@ exports.default = {
                 return {};
             }
         },
+        axios: {
+            type: Object,
+            required: false,
+            default: function _default() {
+                return window.axios;
+            }
+        },
         bus: {
             type: Object,
             default: function _default() {
@@ -347,7 +354,7 @@ exports.default = {
 
             this.$emit('beforeRequest');
 
-            axios.get(url, {
+            this.axios.get(url, {
                 headers: this.config.headers,
                 params: Object.assign({}, params, this.config.params)
             }).then(function (_ref) {
