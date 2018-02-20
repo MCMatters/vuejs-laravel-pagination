@@ -306,7 +306,6 @@ exports.default = {
             }
         },
         axios: {
-            type: Object,
             required: false,
             default: function _default() {
                 return window.axios;

@@ -40,7 +40,6 @@
                 }
             },
             axios: {
-                type: Object,
                 required: false,
                 default() {
                     return window.axios;
