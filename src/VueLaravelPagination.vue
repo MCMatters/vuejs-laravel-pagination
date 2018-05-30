@@ -30,27 +30,27 @@
         props: {
             resourceUrl: {
                 type: String,
-                required: true
+                required: true,
             },
             options: {
                 type: Object,
                 required: false,
                 default() {
                     return {};
-                }
+                },
             },
             axios: {
                 required: false,
                 default() {
                     return window.axios;
-                }
+                },
             },
             bus: {
                 type: Object,
                 default() {
                     return VueBus || { $on() {} };
-                }
-            }
+                },
+            },
         },
         data() {
             return {
@@ -70,25 +70,28 @@
                     divider: '...',
                     hideIfEmpty: true,
                     params: {},
-                    headers: {}
-                }
+                    headers: {},
+                    convertBooleanToInteger: false,
+                },
             };
         },
         methods: {
             fetchData(pageUrl) {
-                const { url, params } = this.transformPageUrl(pageUrl);
+                let { url, params } = this.transformPageUrl(pageUrl);
+
+                params = Object.assign({}, params, this.config.params);
+
+                Object.keys(params).forEach((key) => {
+                    params[key] = this.convertBooleanToInteger(params[key]);
+                });
 
                 this.$emit('beforeRequest');
 
-                this.axios
-                    .get(url, {
-                        headers: this.config.headers,
-                        params: Object.assign({}, params, this.config.params),
-                    })
+                this.axios.get(url, { headers: this.config.headers, params, })
                     .then(({ data }) => {
                         this.handleResponseData(data);
                     })
-                    .catch(response => {
+                    .catch((response) => {
                         this.$emit('failed', response);
                     });
             },
@@ -132,7 +135,7 @@
                     return {
                         url: splitUrl[0],
                         params
-                    }
+                    };
                 }
 
                 return { url: splitUrl[0], params: {} };
@@ -156,7 +159,15 @@
                 }
 
                 return response;
-            }
+            },
+
+            convertBooleanToInteger(value) {
+                if (!this.config.convertBooleanToInteger || typeof value !== 'boolean') {
+                    return value;
+                }
+
+                return +value;
+            },
         },
         computed: {
             elements() {
@@ -247,7 +258,7 @@
                 }
 
                 return elements;
-            }
+            },
         },
         watch: {
             resourceUrl() {
@@ -258,7 +269,7 @@
                 handler() {
                     this.updateConfig();
                 },
-                deep: true
+                deep: true,
             }
         },
         created() {
@@ -268,6 +279,6 @@
                 page = page || this.current_page;
                 this.fetchData(`${this.resourceUrl}?page=${page}`);
             });
-        }
-    }
+        },
+    };
 </script>

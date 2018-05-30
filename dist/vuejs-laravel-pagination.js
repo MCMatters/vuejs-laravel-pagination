@@ -338,7 +338,8 @@ exports.default = {
                 divider: '...',
                 hideIfEmpty: true,
                 params: {},
-                headers: {}
+                headers: {},
+                convertBooleanToInteger: false
             }
         };
     },
@@ -351,12 +352,15 @@ exports.default = {
                 url = _transformPageUrl.url,
                 params = _transformPageUrl.params;
 
+            params = Object.assign({}, params, this.config.params);
+
+            Object.keys(params).forEach(function (key) {
+                params[key] = _this.convertBooleanToInteger(params[key]);
+            });
+
             this.$emit('beforeRequest');
 
-            this.axios.get(url, {
-                headers: this.config.headers,
-                params: Object.assign({}, params, this.config.params)
-            }).then(function (_ref) {
+            this.axios.get(url, { headers: this.config.headers, params: params }).then(function (_ref) {
                 var data = _ref.data;
 
                 _this.handleResponseData(data);
@@ -419,6 +423,13 @@ exports.default = {
             }
 
             return response;
+        },
+        convertBooleanToInteger: function convertBooleanToInteger(value) {
+            if (!this.config.convertBooleanToInteger || typeof value !== 'boolean') {
+                return value;
+            }
+
+            return +value;
         }
     },
     computed: {
