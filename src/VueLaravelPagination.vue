@@ -53,8 +53,7 @@
             },
         },
         created() {
-            this.updateConfig();
-            this.fetchData();
+            this.updateConfig(true);
 
             this.bus.$on('update-pagination-items', (page) => {
                 page = page || this.current_page;
@@ -63,6 +62,16 @@
 
             if (this.historyModeEnabled) {
                 window.onpopstate = this.handleBrowserBackButton;
+
+                const query = [];
+
+                Object.keys(this.$route.query).forEach((key) => {
+                    query.push(`${key}=${this.convertBooleanToInteger(this.$route.query[key])}`);
+                });
+
+                this.fetchData(`${this.resourceUrl}?${query.join('&')}`);
+            } else {
+                this.fetchData();
             }
         },
         data() {
@@ -93,11 +102,7 @@
             fetchData(pageUrl) {
                 let { url, params } = this.transformPageUrl(pageUrl);
 
-                if (this.historyModeEnabled) {
-                    params = Object.assign({}, this.$route.query, params, this.config.params);
-                } else {
-                    params = Object.assign({}, params, this.config.params);
-                }
+                params = Object.assign({}, this.config.params, params);
 
                 const queryParams = {};
 
@@ -147,8 +152,29 @@
                     : this.getNestedValue(data, this.config.remote_prev_page_url);
             },
 
-            updateConfig() {
-                this.config = Object.assign({}, this.config, (this.$options.config || {}), this.options);
+            updateConfig(initial = false) {
+                this.config = Object.assign(
+                    {},
+                    this.config,
+                    (this.$options.config || {}),
+                    this.options,
+                );
+
+                if (this.historyModeEnabled) {
+                    if (initial) {
+                        this.config.params = Object.assign(
+                            {},
+                            this.config.params,
+                            this.$route.query,
+                        );
+                    } else {
+                        this.config.params = Object.assign(
+                            {},
+                            this.$route.query,
+                            this.config.params,
+                        );
+                    }
+                }
             },
 
             transformPageUrl(pageUrl) {
@@ -303,7 +329,7 @@
                 return elements;
             },
             historyModeEnabled() {
-                return this.config.historyMode && this.$router;
+                return !!(this.config.historyMode && this.$router);
             },
         },
         watch: {

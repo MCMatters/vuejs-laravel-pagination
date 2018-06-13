@@ -323,8 +323,7 @@ exports.default = {
     created: function created() {
         var _this = this;
 
-        this.updateConfig();
-        this.fetchData();
+        this.updateConfig(true);
 
         this.bus.$on('update-pagination-items', function (page) {
             page = page || _this.current_page;
@@ -333,6 +332,16 @@ exports.default = {
 
         if (this.historyModeEnabled) {
             window.onpopstate = this.handleBrowserBackButton;
+
+            var query = [];
+
+            Object.keys(this.$route.query).forEach(function (key) {
+                query.push(key + '=' + _this.convertBooleanToInteger(_this.$route.query[key]));
+            });
+
+            this.fetchData(this.resourceUrl + '?' + query.join('&'));
+        } else {
+            this.fetchData();
         }
     },
     data: function data() {
@@ -368,11 +377,7 @@ exports.default = {
                 url = _transformPageUrl.url,
                 params = _transformPageUrl.params;
 
-            if (this.historyModeEnabled) {
-                params = Object.assign({}, this.$route.query, params, this.config.params);
-            } else {
-                params = Object.assign({}, params, this.config.params);
-            }
+            params = Object.assign({}, this.config.params, params);
 
             var queryParams = {};
 
@@ -412,7 +417,17 @@ exports.default = {
             this.prev_page_url = this.current_page === 1 ? null : this.getNestedValue(data, this.config.remote_prev_page_url);
         },
         updateConfig: function updateConfig() {
+            var initial = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
             this.config = Object.assign({}, this.config, this.$options.config || {}, this.options);
+
+            if (this.historyModeEnabled) {
+                if (initial) {
+                    this.config.params = Object.assign({}, this.config.params, this.$route.query);
+                } else {
+                    this.config.params = Object.assign({}, this.$route.query, this.config.params);
+                }
+            }
         },
         transformPageUrl: function transformPageUrl(pageUrl) {
             pageUrl = pageUrl || this.resourceUrl;
@@ -564,7 +579,7 @@ exports.default = {
             return elements;
         },
         historyModeEnabled: function historyModeEnabled() {
-            return this.config.historyMode && this.$router;
+            return !!(this.config.historyMode && this.$router);
         }
     },
     watch: {
