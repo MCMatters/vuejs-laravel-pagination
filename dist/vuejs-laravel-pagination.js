@@ -320,6 +320,21 @@ exports.default = {
             }
         }
     },
+    created: function created() {
+        var _this = this;
+
+        this.updateConfig();
+        this.fetchData();
+
+        this.bus.$on('update-pagination-items', function (page) {
+            page = page || _this.current_page;
+            _this.fetchData(_this.resourceUrl + '?page=' + page);
+        });
+
+        if (this.historyModeEnabled) {
+            window.onpopstate = this.handleBrowserBackButton;
+        }
+    },
     data: function data() {
         return {
             current_page: '',
@@ -335,6 +350,7 @@ exports.default = {
                 previous_button_text: '&laquo;',
                 next_button_text: '&raquo;',
                 onEachSide: 3,
+                historyMode: false,
                 divider: '...',
                 hideIfEmpty: true,
                 params: {},
@@ -346,32 +362,46 @@ exports.default = {
 
     methods: {
         fetchData: function fetchData(pageUrl) {
-            var _this = this;
+            var _this2 = this;
 
             var _transformPageUrl = this.transformPageUrl(pageUrl),
                 url = _transformPageUrl.url,
                 params = _transformPageUrl.params;
 
-            params = Object.assign({}, params, this.config.params);
+            if (this.historyModeEnabled) {
+                params = Object.assign({}, this.$route.query, params, this.config.params);
+            } else {
+                params = Object.assign({}, params, this.config.params);
+            }
+
+            var queryParams = {};
 
             Object.keys(params).forEach(function (key) {
-                params[key] = _this.convertBooleanToInteger(params[key]);
+                if (params[key] !== undefined && typeof params[key] !== 'undefined' && params[key] !== null) {
+                    queryParams[key] = _this2.convertBooleanToInteger(params[key]);
+                }
             });
 
             this.$emit('beforeRequest');
 
-            this.axios.get(url, { headers: this.config.headers, params: params }).then(function (_ref) {
+            this.axios.get(url, { headers: this.config.headers, params: queryParams }).then(function (_ref) {
                 var data = _ref.data;
 
-                _this.handleResponseData(data);
+                _this2.handleResponseData(data);
+                _this2.pushHistory(queryParams);
             }).catch(function (response) {
-                _this.$emit('failed', response);
+                _this2.$emit('failed', response);
             });
         },
         handleResponseData: function handleResponseData(response) {
             this.makePagination(response);
             var data = this.getNestedValue(response, this.config.remote_data);
             this.$emit('update', data);
+        },
+        pushHistory: function pushHistory(query) {
+            if (this.historyModeEnabled) {
+                this.$router.push({ query: query });
+            }
         },
         makePagination: function makePagination(data) {
             this.current_page = this.getNestedValue(data, this.config.remote_current_page);
@@ -419,7 +449,7 @@ exports.default = {
             }
 
             if (typeof response === 'undefined') {
-                console.log('[VueLaravelPagination] Response doesn\'t contain key ' + originalPath + '!');
+                console.log('[VueJsLaravelPagination] Response doesn\'t contain key ' + originalPath + '!');
             }
 
             return response;
@@ -430,6 +460,17 @@ exports.default = {
             }
 
             return +value;
+        },
+        handleBrowserBackButton: function handleBrowserBackButton(event) {
+            if (this.$route.path === event.target.location.pathname) {
+                var path = this.$route.fullPath.split('?');
+
+                if (path.length < 2) {
+                    this.fetchData();
+                } else {
+                    this.fetchData(this.resourceUrl + '?' + path.pop());
+                }
+            }
         }
     },
     computed: {
@@ -521,6 +562,9 @@ exports.default = {
             }
 
             return elements;
+        },
+        historyModeEnabled: function historyModeEnabled() {
+            return this.config.historyMode && this.$router;
         }
     },
     watch: {
@@ -536,16 +580,6 @@ exports.default = {
 
             deep: true
         }
-    },
-    created: function created() {
-        var _this2 = this;
-
-        this.updateConfig();
-        this.fetchData();
-        this.bus.$on('update-pagination-items', function (page) {
-            page = page || _this2.current_page;
-            _this2.fetchData(_this2.resourceUrl + '?page=' + page);
-        });
     }
 };
 

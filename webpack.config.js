@@ -7,7 +7,7 @@ module.exports = {
     output: {
         filename: './dist/[name].js',
         library: 'VueLaravelPagination',
-        libraryTarget: 'umd'
+        libraryTarget: 'umd',
     },
     module: {
         rules: [
@@ -16,31 +16,37 @@ module.exports = {
                 loader: 'vue-loader',
                 options: {
                     loaders: {
-                        js: 'babel-loader'
-                    }
-                }
+                        js: 'babel-loader',
+                        options: {
+                            cacheDirectory: true,
+                        },
+                    },
+                },
             },
             {
                 test: /\.js$/,
                 loader: 'babel-loader',
-                exclude: /node_modules/
+                exclude: /node_modules/,
+                options: {
+                    cacheDirectory: true,
+                },
             },
-        ]
-    }
+        ],
+    },
 };
 
 if (process.env.NODE_ENV === 'production') {
     module.exports.plugins = (module.exports.plugins || []).concat([
         new webpack.DefinePlugin({
             'process.env': {
-                NODE_ENV: '"production"'
-            }
+                NODE_ENV: '"production"',
+            },
         }),
         new webpack.optimize.UglifyJsPlugin({
             compress: {
-                warnings: false
-            }
-        })
+                warnings: false,
+            },
+        }),
     ]);
 
     module.exports.output.filename = module.exports.output.filename.replace(/\.js$/, '.min.js');

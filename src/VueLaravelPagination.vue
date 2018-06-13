@@ -52,6 +52,19 @@
                 },
             },
         },
+        created() {
+            this.updateConfig();
+            this.fetchData();
+
+            this.bus.$on('update-pagination-items', (page) => {
+                page = page || this.current_page;
+                this.fetchData(`${this.resourceUrl}?page=${page}`);
+            });
+
+            if (this.historyModeEnabled) {
+                window.onpopstate = this.handleBrowserBackButton;
+            }
+        },
         data() {
             return {
                 current_page: '',
@@ -67,6 +80,7 @@
                     previous_button_text: '&laquo;',
                     next_button_text: '&raquo;',
                     onEachSide: 3,
+                    historyMode: false,
                     divider: '...',
                     hideIfEmpty: true,
                     params: {},
@@ -79,17 +93,29 @@
             fetchData(pageUrl) {
                 let { url, params } = this.transformPageUrl(pageUrl);
 
-                params = Object.assign({}, params, this.config.params);
+                if (this.historyModeEnabled) {
+                    params = Object.assign({}, this.$route.query, params, this.config.params);
+                } else {
+                    params = Object.assign({}, params, this.config.params);
+                }
+
+                const queryParams = {};
 
                 Object.keys(params).forEach((key) => {
-                    params[key] = this.convertBooleanToInteger(params[key]);
+                    if (params[key] !== undefined &&
+                        typeof params[key] !== 'undefined' &&
+                        params[key] !== null
+                    ) {
+                        queryParams[key] = this.convertBooleanToInteger(params[key]);
+                    }
                 });
 
                 this.$emit('beforeRequest');
 
-                this.axios.get(url, { headers: this.config.headers, params, })
+                this.axios.get(url, { headers: this.config.headers, params: queryParams })
                     .then(({ data }) => {
                         this.handleResponseData(data);
+                        this.pushHistory(queryParams);
                     })
                     .catch((response) => {
                         this.$emit('failed', response);
@@ -100,6 +126,12 @@
                 this.makePagination(response);
                 const data = this.getNestedValue(response, this.config.remote_data);
                 this.$emit('update', data);
+            },
+
+            pushHistory(query) {
+              if (this.historyModeEnabled) {
+                  this.$router.push({ query });
+              }
             },
 
             makePagination(data) {
@@ -155,7 +187,7 @@
                 }
 
                 if (typeof response === 'undefined') {
-                    console.log(`[VueLaravelPagination] Response doesn't contain key ${originalPath}!`);
+                    console.log(`[VueJsLaravelPagination] Response doesn't contain key ${originalPath}!`);
                 }
 
                 return response;
@@ -167,6 +199,17 @@
                 }
 
                 return +value;
+            },
+            handleBrowserBackButton(event) {
+                if (this.$route.path === event.target.location.pathname) {
+                    const path = this.$route.fullPath.split('?');
+
+                    if (path.length < 2) {
+                        this.fetchData();
+                    } else {
+                        this.fetchData(`${this.resourceUrl}?${path.pop()}`);
+                    }
+                }
             },
         },
         computed: {
@@ -259,6 +302,9 @@
 
                 return elements;
             },
+            historyModeEnabled() {
+                return this.config.historyMode && this.$router;
+            },
         },
         watch: {
             resourceUrl() {
@@ -271,14 +317,6 @@
                 },
                 deep: true,
             }
-        },
-        created() {
-            this.updateConfig();
-            this.fetchData();
-            this.bus.$on('update-pagination-items', (page) => {
-                page = page || this.current_page;
-                this.fetchData(`${this.resourceUrl}?page=${page}`);
-            });
         },
     };
 </script>

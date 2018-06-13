@@ -42,8 +42,8 @@
         ]
     },
     "scripts": {
-        "production": "cross-env NODE_ENV=production webpack --progress --hide-modules",
+        "prod": "cross-env NODE_ENV=production webpack --progress --hide-modules",
         "dev": "webpack --progress --hide-modules",
-        "build": "yarn run production && yarn run dev"
+        "build": "yarn run prod && yarn run dev"
     }
 }
