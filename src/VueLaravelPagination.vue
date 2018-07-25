@@ -55,11 +55,6 @@
         created() {
             this.updateConfig(true);
 
-            this.bus.$on('update-pagination-items', (page) => {
-                page = page || this.current_page;
-                this.fetchData(`${this.resourceUrl}?page=${page}`);
-            });
-
             if (this.historyModeEnabled) {
                 window.onpopstate = this.handleBrowserBackButton;
 
@@ -73,6 +68,15 @@
             } else {
                 this.fetchData();
             }
+        },
+        mounted() {
+            this.bus.$on('update-pagination-items', (page) => {
+                page = page || this.current_page;
+                this.fetchData(`${this.resourceUrl}?page=${page}`);
+            });
+        },
+        beforeDestroy() {
+            this.bus.$off('update-pagination-items');
         },
         data() {
             return {
@@ -135,7 +139,7 @@
 
             pushHistory(query) {
               if (this.historyModeEnabled) {
-                  this.$router.push({ query });
+                  this.$router.replace({ query });
               }
             },
 

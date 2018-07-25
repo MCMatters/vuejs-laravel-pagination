@@ -325,11 +325,6 @@ exports.default = {
 
         this.updateConfig(true);
 
-        this.bus.$on('update-pagination-items', function (page) {
-            page = page || _this.current_page;
-            _this.fetchData(_this.resourceUrl + '?page=' + page);
-        });
-
         if (this.historyModeEnabled) {
             window.onpopstate = this.handleBrowserBackButton;
 
@@ -343,6 +338,17 @@ exports.default = {
         } else {
             this.fetchData();
         }
+    },
+    mounted: function mounted() {
+        var _this2 = this;
+
+        this.bus.$on('update-pagination-items', function (page) {
+            page = page || _this2.current_page;
+            _this2.fetchData(_this2.resourceUrl + '?page=' + page);
+        });
+    },
+    beforeDestroy: function beforeDestroy() {
+        this.bus.$off('update-pagination-items');
     },
     data: function data() {
         return {
@@ -371,7 +377,7 @@ exports.default = {
 
     methods: {
         fetchData: function fetchData(pageUrl) {
-            var _this2 = this;
+            var _this3 = this;
 
             var _transformPageUrl = this.transformPageUrl(pageUrl),
                 url = _transformPageUrl.url,
@@ -383,7 +389,7 @@ exports.default = {
 
             Object.keys(params).forEach(function (key) {
                 if (params[key] !== undefined && typeof params[key] !== 'undefined' && params[key] !== null) {
-                    queryParams[key] = _this2.convertBooleanToInteger(params[key]);
+                    queryParams[key] = _this3.convertBooleanToInteger(params[key]);
                 }
             });
 
@@ -392,10 +398,10 @@ exports.default = {
             this.axios.get(url, { headers: this.config.headers, params: queryParams }).then(function (_ref) {
                 var data = _ref.data;
 
-                _this2.handleResponseData(data);
-                _this2.pushHistory(queryParams);
+                _this3.handleResponseData(data);
+                _this3.pushHistory(queryParams);
             }).catch(function (response) {
-                _this2.$emit('failed', response);
+                _this3.$emit('failed', response);
             });
         },
         handleResponseData: function handleResponseData(response) {
@@ -405,7 +411,7 @@ exports.default = {
         },
         pushHistory: function pushHistory(query) {
             if (this.historyModeEnabled) {
-                this.$router.push({ query: query });
+                this.$router.replace({ query: query });
             }
         },
         makePagination: function makePagination(data) {
