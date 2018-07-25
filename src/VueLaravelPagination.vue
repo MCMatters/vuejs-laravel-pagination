@@ -5,7 +5,7 @@
             <span v-if="current_page == 1" v-html="config.previous_button_text"></span>
             <a href="#" rel="prev"
                v-else
-               @click.prevent="fetchData(prev_page_url)"
+               @click.prevent="fetchData(prevPageUrl)"
                v-html="config.previous_button_text">
             </a>
         </li>
@@ -17,7 +17,7 @@
         <li :class="{ disabled: current_page == last_page }">
             <a href="#" rel="next"
                v-if="current_page < last_page"
-               @click.prevent="fetchData(next_page_url)"
+               @click.prevent="fetchData(nextPageUrl)"
                v-html="config.next_button_text">
             </a>
             <span v-else v-html="config.next_button_text"></span>
@@ -330,6 +330,12 @@
             },
             historyModeEnabled() {
                 return !!(this.config.historyMode && this.$router);
+            },
+            nextPageUrl() {
+                return `${this.resourceUrl}?page=${this.current_page + 1}`;
+            },
+            prevPageUrl() {
+                return `${this.resourceUrl}?page=${this.current_page - 1}`;
             },
         },
         watch: {

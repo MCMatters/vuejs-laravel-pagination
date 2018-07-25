@@ -580,6 +580,12 @@ exports.default = {
         },
         historyModeEnabled: function historyModeEnabled() {
             return !!(this.config.historyMode && this.$router);
+        },
+        nextPageUrl: function nextPageUrl() {
+            return this.resourceUrl + '?page=' + (this.current_page + 1);
+        },
+        prevPageUrl: function prevPageUrl() {
+            return this.resourceUrl + '?page=' + (this.current_page - 1);
         }
     },
     watch: {
@@ -639,7 +645,7 @@ var render = function() {
               on: {
                 click: function($event) {
                   $event.preventDefault()
-                  _vm.fetchData(_vm.prev_page_url)
+                  _vm.fetchData(_vm.prevPageUrl)
                 }
               }
             })
@@ -684,7 +690,7 @@ var render = function() {
               on: {
                 click: function($event) {
                   $event.preventDefault()
-                  _vm.fetchData(_vm.next_page_url)
+                  _vm.fetchData(_vm.nextPageUrl)
                 }
               }
             })
