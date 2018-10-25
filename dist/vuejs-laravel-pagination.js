@@ -321,30 +321,22 @@ exports.default = {
         }
     },
     created: function created() {
-        var _this = this;
-
         this.updateConfig(true);
 
         if (this.historyModeEnabled) {
             window.onpopstate = this.handleBrowserBackButton;
 
-            var query = [];
-
-            Object.keys(this.$route.query).forEach(function (key) {
-                query.push(key + '=' + _this.convertBooleanToInteger(_this.$route.query[key]));
-            });
-
-            this.fetchData(this.resourceUrl + '?' + query.join('&'));
+            this.fetchData(this.normalizeUrl(this.resourceUrl, this.$route.query));
         } else {
             this.fetchData();
         }
     },
     mounted: function mounted() {
-        var _this2 = this;
+        var _this = this;
 
         this.bus.$on('update-pagination-items', function (page) {
-            page = page || _this2.current_page;
-            _this2.fetchData(_this2.resourceUrl + '?page=' + page);
+            page = page || _this.current_page;
+            _this.fetchData(_this.normalizeUrl(_this.resourceUrl, { page: page }));
         });
     },
     beforeDestroy: function beforeDestroy() {
@@ -377,7 +369,7 @@ exports.default = {
 
     methods: {
         fetchData: function fetchData(pageUrl) {
-            var _this3 = this;
+            var _this2 = this;
 
             var _transformPageUrl = this.transformPageUrl(pageUrl),
                 url = _transformPageUrl.url,
@@ -389,7 +381,7 @@ exports.default = {
 
             Object.keys(params).forEach(function (key) {
                 if (params[key] !== undefined && typeof params[key] !== 'undefined' && params[key] !== null) {
-                    queryParams[key] = _this3.convertBooleanToInteger(params[key]);
+                    queryParams[key] = _this2.convertBooleanToInteger(params[key]);
                 }
             });
 
@@ -398,10 +390,10 @@ exports.default = {
             this.axios.get(url, { headers: this.config.headers, params: queryParams }).then(function (_ref) {
                 var data = _ref.data;
 
-                _this3.handleResponseData(data);
-                _this3.pushHistory(queryParams);
+                _this2.handleResponseData(data);
+                _this2.pushHistory(queryParams);
             }).catch(function (response) {
-                _this3.$emit('failed', response);
+                _this2.$emit('failed', response);
             });
         },
         handleResponseData: function handleResponseData(response) {
@@ -436,21 +428,13 @@ exports.default = {
             }
         },
         transformPageUrl: function transformPageUrl(pageUrl) {
-            pageUrl = pageUrl || this.resourceUrl;
+            pageUrl = this.normalizeUrl(pageUrl || this.resourceUrl);
             var splitUrl = pageUrl.split('?');
 
             if (splitUrl.length === 2) {
-                var queries = splitUrl[1].split('&');
-                var params = {};
-
-                queries.forEach(function (query) {
-                    query = query.split('=');
-                    params[query[0]] = query[1];
-                });
-
                 return {
                     url: splitUrl[0],
-                    params: params
+                    params: this.getObjectFromQueryParams(splitUrl[1])
                 };
             }
 
@@ -489,9 +473,49 @@ exports.default = {
                 if (path.length < 2) {
                     this.fetchData();
                 } else {
-                    this.fetchData(this.resourceUrl + '?' + path.pop());
+                    this.fetchData(this.normalizeUrl(this.resourceUrl, path.pop()));
                 }
             }
+        },
+        getObjectFromQueryParams: function getObjectFromQueryParams(query) {
+            var params = {};
+
+            if (typeof query === 'string' || query instanceof String) {
+                query.split('&').forEach(function (query) {
+                    query = query.split('=');
+                    params[query[0]] = query[1] || '';
+                });
+
+                return params;
+            }
+
+            return query || {};
+        },
+        transformQuery: function transformQuery(query) {
+            var _this3 = this;
+
+            var params = [];
+
+            Object.keys(query).forEach(function (key) {
+                params.push(key + '=' + _this3.convertBooleanToInteger(query[key]));
+            });
+
+            return params;
+        },
+        normalizeUrl: function normalizeUrl(url, query) {
+            var splitUrl = url.split('?');
+            var existQueryParams = {};
+
+            query = this.getObjectFromQueryParams(query);
+
+            if (splitUrl.length > 1) {
+                existQueryParams = this.getObjectFromQueryParams(splitUrl.pop());
+            }
+
+            var queryParams = Object.assign({}, query, existQueryParams);
+            var queryString = this.transformQuery(queryParams).join('&');
+
+            return queryString ? splitUrl[0] + '?' + queryString : url;
         }
     },
     computed: {
@@ -505,7 +529,7 @@ exports.default = {
                 for (var i = 1; i <= this.last_page; i++) {
                     elements.push({
                         key: i,
-                        item: this.resourceUrl + '?page=' + i
+                        item: this.normalizeUrl(this.resourceUrl, { page: i })
                     });
                 }
 
@@ -519,7 +543,7 @@ exports.default = {
                 for (var _i = 1; _i <= onSides + 2; _i++) {
                     elements.push({
                         key: _i,
-                        item: this.resourceUrl + '?page=' + _i
+                        item: this.normalizeUrl(this.resourceUrl, { page: _i })
                     });
                 }
 
@@ -528,7 +552,7 @@ exports.default = {
                 for (var _i2 = this.last_page - 1; _i2 <= this.last_page; _i2++) {
                     elements.push({
                         key: _i2,
-                        item: this.resourceUrl + '?page=' + _i2
+                        item: this.normalizeUrl(this.resourceUrl, { page: _i2 })
                     });
                 }
 
@@ -540,7 +564,7 @@ exports.default = {
                 for (var _i3 = 1; _i3 <= 2; _i3++) {
                     elements.push({
                         key: _i3,
-                        item: this.resourceUrl + '?page=' + _i3
+                        item: this.normalizeUrl(this.resourceUrl, { page: _i3 })
                     });
                 }
 
@@ -549,7 +573,7 @@ exports.default = {
                 for (var _i4 = this.last_page - (onSides + 2); _i4 <= this.last_page; _i4++) {
                     elements.push({
                         key: _i4,
-                        item: this.resourceUrl + '?page=' + _i4
+                        item: this.normalizeUrl(this.resourceUrl, { page: _i4 })
                     });
                 }
 
@@ -560,7 +584,7 @@ exports.default = {
             for (var _i5 = 1; _i5 <= 2; _i5++) {
                 elements.push({
                     key: _i5,
-                    item: this.resourceUrl + '?page=' + _i5
+                    item: this.normalizeUrl(this.resourceUrl, { page: _i5 })
                 });
             }
 
@@ -569,7 +593,7 @@ exports.default = {
             for (var _i6 = this.current_page - onEachSide; _i6 <= this.current_page + onEachSide; _i6++) {
                 elements.push({
                     key: _i6,
-                    item: this.resourceUrl + '?page=' + _i6
+                    item: this.normalizeUrl(this.resourceUrl, { page: _i6 })
                 });
             }
 
@@ -578,7 +602,7 @@ exports.default = {
             for (var _i7 = this.last_page - 1; _i7 <= this.last_page; _i7++) {
                 elements.push({
                     key: _i7,
-                    item: this.resourceUrl + '?page=' + _i7
+                    item: this.normalizeUrl(this.resourceUrl, { page: _i7 })
                 });
             }
 
@@ -588,10 +612,10 @@ exports.default = {
             return !!(this.config.historyMode && this.$router);
         },
         nextPageUrl: function nextPageUrl() {
-            return this.resourceUrl + '?page=' + (this.current_page + 1);
+            return this.normalizeUrl(this.resourceUrl, { page: this.current_page + 1 });
         },
         prevPageUrl: function prevPageUrl() {
-            return this.resourceUrl + '?page=' + (this.current_page - 1);
+            return this.normalizeUrl(this.resourceUrl, { page: this.current_page - 1 });
         }
     },
     watch: {

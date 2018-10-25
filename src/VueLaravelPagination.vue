@@ -58,13 +58,9 @@
             if (this.historyModeEnabled) {
                 window.onpopstate = this.handleBrowserBackButton;
 
-                const query = [];
-
-                Object.keys(this.$route.query).forEach((key) => {
-                    query.push(`${key}=${this.convertBooleanToInteger(this.$route.query[key])}`);
-                });
-
-                this.fetchData(`${this.resourceUrl}?${query.join('&')}`);
+                this.fetchData(
+                    this.normalizeUrl(this.resourceUrl, this.$route.query)
+                );
             } else {
                 this.fetchData();
             }
@@ -72,7 +68,7 @@
         mounted() {
             this.bus.$on('update-pagination-items', (page) => {
                 page = page || this.current_page;
-                this.fetchData(`${this.resourceUrl}?page=${page}`);
+                this.fetchData(this.normalizeUrl(this.resourceUrl, { page }));
             });
         },
         beforeDestroy() {
@@ -182,21 +178,13 @@
             },
 
             transformPageUrl(pageUrl) {
-                pageUrl = pageUrl || this.resourceUrl;
+                pageUrl = this.normalizeUrl(pageUrl || this.resourceUrl);
                 const splitUrl = pageUrl.split('?');
 
                 if (splitUrl.length === 2) {
-                    const queries = splitUrl[1].split('&');
-                    const params = {};
-
-                    queries.forEach(query => {
-                        query = query.split('=');
-                        params[query[0]] = query[1];
-                    });
-
                     return {
                         url: splitUrl[0],
-                        params
+                        params: this.getObjectFromQueryParams(splitUrl[1]),
                     };
                 }
 
@@ -237,9 +225,50 @@
                     if (path.length < 2) {
                         this.fetchData();
                     } else {
-                        this.fetchData(`${this.resourceUrl}?${path.pop()}`);
+                        this.fetchData(this.normalizeUrl(this.resourceUrl, path.pop()));
                     }
                 }
+            },
+
+            getObjectFromQueryParams(query) {
+                const params = {};
+
+                if (typeof query === 'string' || query instanceof String) {
+                    query.split('&').forEach((query) => {
+                        query = query.split('=');
+                        params[query[0]] = query[1] || '';
+                    });
+
+                    return params;
+                }
+
+                return query || {};
+            },
+
+            transformQuery(query) {
+                const params = [];
+
+                Object.keys(query).forEach((key) => {
+                    params.push(`${key}=${this.convertBooleanToInteger(query[key])}`);
+                });
+
+                return params;
+            },
+
+            normalizeUrl(url, query) {
+                const splitUrl = url.split('?');
+                let existQueryParams = {};
+
+                query = this.getObjectFromQueryParams(query);
+
+                if (splitUrl.length > 1) {
+                    existQueryParams = this.getObjectFromQueryParams(splitUrl.pop());
+                }
+
+                const queryParams = Object.assign({}, query, existQueryParams);
+                const queryString = this.transformQuery(queryParams).join('&');
+
+                return queryString ? `${splitUrl[0]}?${queryString}` : url;
             },
         },
         computed: {
@@ -253,7 +282,7 @@
                     for (let i = 1; i <= this.last_page; i++) {
                         elements.push({
                             key: i,
-                            item: `${this.resourceUrl}?page=${i}`
+                            item: this.normalizeUrl(this.resourceUrl, { page: i}),
                         });
                     }
 
@@ -267,7 +296,7 @@
                     for (let i = 1; i <= onSides + 2; i++) {
                         elements.push({
                             key: i,
-                            item: `${this.resourceUrl}?page=${i}`
+                            item: this.normalizeUrl(this.resourceUrl, { page: i}),
                         });
                     }
 
@@ -276,7 +305,7 @@
                     for (let i = this.last_page - 1; i <= this.last_page; i++) {
                         elements.push({
                             key: i,
-                            item: `${this.resourceUrl}?page=${i}`
+                            item: this.normalizeUrl(this.resourceUrl, { page: i}),
                         });
                     }
 
@@ -288,7 +317,7 @@
                     for (let i = 1; i <= 2; i++) {
                         elements.push({
                             key: i,
-                            item: `${this.resourceUrl}?page=${i}`
+                            item: this.normalizeUrl(this.resourceUrl, { page: i}),
                         });
                     }
 
@@ -297,7 +326,7 @@
                     for (let i = this.last_page - (onSides + 2); i <= this.last_page; i++) {
                         elements.push({
                             key: i,
-                            item: `${this.resourceUrl}?page=${i}`
+                            item: this.normalizeUrl(this.resourceUrl, { page: i}),
                         });
                     }
 
@@ -308,7 +337,7 @@
                 for (let i = 1; i <= 2; i++) {
                     elements.push({
                         key: i,
-                        item: `${this.resourceUrl}?page=${i}`
+                        item: this.normalizeUrl(this.resourceUrl, { page: i}),
                     });
                 }
 
@@ -317,7 +346,7 @@
                 for (let i = this.current_page - onEachSide; i <= this.current_page + onEachSide; i++) {
                     elements.push({
                         key: i,
-                        item: `${this.resourceUrl}?page=${i}`
+                        item: this.normalizeUrl(this.resourceUrl, { page: i}),
                     });
                 }
 
@@ -326,7 +355,7 @@
                 for (let i = this.last_page - 1; i <= this.last_page; i++) {
                     elements.push({
                         key: i,
-                        item: `${this.resourceUrl}?page=${i}`
+                        item: this.normalizeUrl(this.resourceUrl, { page: i}),
                     });
                 }
 
@@ -336,10 +365,10 @@
                 return !!(this.config.historyMode && this.$router);
             },
             nextPageUrl() {
-                return `${this.resourceUrl}?page=${this.current_page + 1}`;
+                return this.normalizeUrl(this.resourceUrl, { page: this.current_page + 1});
             },
             prevPageUrl() {
-                return `${this.resourceUrl}?page=${this.current_page - 1}`;
+                return this.normalizeUrl(this.resourceUrl, { page: this.current_page - 1});
             },
         },
         watch: {
