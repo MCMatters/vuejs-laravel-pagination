@@ -291,6 +291,11 @@ Object.defineProperty(exports, "__esModule", {
 //
 //
 //
+//
+//
+//
+//
+//
 
 exports.default = {
     props: {
@@ -664,27 +669,39 @@ var render = function() {
       staticClass: "pagination vl-pagination"
     },
     [
-      _c("li", { class: { disabled: _vm.current_page == 1 } }, [
-        _vm.current_page == 1
-          ? _c("span", {
-              domProps: { innerHTML: _vm._s(_vm.config.previous_button_text) }
-            })
-          : _c("a", {
-              attrs: { href: "#", rel: "prev" },
-              domProps: { innerHTML: _vm._s(_vm.config.previous_button_text) },
-              on: {
-                click: function($event) {
-                  $event.preventDefault()
-                  _vm.fetchData(_vm.prevPageUrl)
+      _c(
+        "li",
+        {
+          staticClass: "page-item",
+          class: { disabled: _vm.current_page == 1 }
+        },
+        [
+          _vm.current_page == 1
+            ? _c("span", {
+                staticClass: "page-link",
+                domProps: { innerHTML: _vm._s(_vm.config.previous_button_text) }
+              })
+            : _c("a", {
+                staticClass: "page-link",
+                attrs: { href: "#", rel: "prev" },
+                domProps: {
+                  innerHTML: _vm._s(_vm.config.previous_button_text)
+                },
+                on: {
+                  click: function($event) {
+                    $event.preventDefault()
+                    return _vm.fetchData(_vm.prevPageUrl)
+                  }
                 }
-              }
-            })
-      ]),
+              })
+        ]
+      ),
       _vm._v(" "),
       _vm._l(_vm.elements, function(el) {
         return _c(
           "li",
           {
+            staticClass: "page-item",
             class: {
               disabled: el.key == "divider",
               active: el.key == _vm.current_page
@@ -692,17 +709,22 @@ var render = function() {
           },
           [
             el.key == _vm.current_page
-              ? _c("span", [_vm._v(_vm._s(el.key))])
+              ? _c("span", { staticClass: "page-link" }, [
+                  _vm._v(_vm._s(el.key))
+                ])
               : el.key === "divider"
-                ? _c("span", [_vm._v(_vm._s(el.item))])
+                ? _c("span", { staticClass: "page-link" }, [
+                    _vm._v(_vm._s(el.item))
+                  ])
                 : _c(
                     "a",
                     {
+                      staticClass: "page-link",
                       attrs: { href: "#" },
                       on: {
                         click: function($event) {
                           $event.preventDefault()
-                          _vm.fetchData(el.item)
+                          return _vm.fetchData(el.item)
                         }
                       }
                     },
@@ -712,22 +734,31 @@ var render = function() {
         )
       }),
       _vm._v(" "),
-      _c("li", { class: { disabled: _vm.current_page == _vm.last_page } }, [
-        _vm.current_page < _vm.last_page
-          ? _c("a", {
-              attrs: { href: "#", rel: "next" },
-              domProps: { innerHTML: _vm._s(_vm.config.next_button_text) },
-              on: {
-                click: function($event) {
-                  $event.preventDefault()
-                  _vm.fetchData(_vm.nextPageUrl)
+      _c(
+        "li",
+        {
+          staticClass: "page-item",
+          class: { disabled: _vm.current_page == _vm.last_page }
+        },
+        [
+          _vm.current_page < _vm.last_page
+            ? _c("a", {
+                staticClass: "page-link",
+                attrs: { href: "#", rel: "next" },
+                domProps: { innerHTML: _vm._s(_vm.config.next_button_text) },
+                on: {
+                  click: function($event) {
+                    $event.preventDefault()
+                    return _vm.fetchData(_vm.nextPageUrl)
+                  }
                 }
-              }
-            })
-          : _c("span", {
-              domProps: { innerHTML: _vm._s(_vm.config.next_button_text) }
-            })
-      ])
+              })
+            : _c("span", {
+                staticClass: "page-link",
+                domProps: { innerHTML: _vm._s(_vm.config.next_button_text) }
+              })
+        ]
+      )
     ],
     2
   )

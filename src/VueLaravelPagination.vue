@@ -1,26 +1,31 @@
 <template>
     <ul class="pagination vl-pagination"
         v-show="!config.hideIfEmpty || !(config.hideIfEmpty && !next_page_url && !prev_page_url)">
-        <li :class="{ disabled: current_page == 1 }">
-            <span v-if="current_page == 1" v-html="config.previous_button_text"></span>
+        <li :class="{ disabled: current_page == 1 }" class="page-item">
+            <span v-if="current_page == 1"
+                  class="page-link"
+                  v-html="config.previous_button_text">
+            </span>
             <a href="#" rel="prev"
                v-else
                @click.prevent="fetchData(prevPageUrl)"
-               v-html="config.previous_button_text">
+               v-html="config.previous_button_text"
+               class="page-link">
             </a>
         </li>
-        <li v-for="el in elements" :class="{ disabled: el.key == 'divider', active: el.key == current_page}">
-            <span v-if="el.key == current_page">{{ el.key }}</span>
-            <span v-else-if="el.key === 'divider'">{{ el.item }}</span>
-            <a href="#" v-else @click.prevent="fetchData(el.item)">{{ el.key }}</a>
+        <li v-for="el in elements" :class="{ disabled: el.key == 'divider', active: el.key == current_page}" class="page-item">
+            <span v-if="el.key == current_page" class="page-link" >{{ el.key }}</span>
+            <span v-else-if="el.key === 'divider'" class="page-link" >{{ el.item }}</span>
+            <a href="#" v-else @click.prevent="fetchData(el.item)" class="page-link">{{ el.key }}</a>
         </li>
-        <li :class="{ disabled: current_page == last_page }">
+        <li :class="{ disabled: current_page == last_page }" class="page-item">
             <a href="#" rel="next"
                v-if="current_page < last_page"
                @click.prevent="fetchData(nextPageUrl)"
-               v-html="config.next_button_text">
+               v-html="config.next_button_text"
+               class="page-link">
             </a>
-            <span v-else v-html="config.next_button_text"></span>
+            <span v-else class="page-link" v-html="config.next_button_text"></span>
         </li>
     </ul>
 </template>
@@ -282,7 +287,7 @@
                     for (let i = 1; i <= this.last_page; i++) {
                         elements.push({
                             key: i,
-                            item: this.normalizeUrl(this.resourceUrl, { page: i}),
+                            item: this.normalizeUrl(this.resourceUrl, { page: i }),
                         });
                     }
 
@@ -296,7 +301,7 @@
                     for (let i = 1; i <= onSides + 2; i++) {
                         elements.push({
                             key: i,
-                            item: this.normalizeUrl(this.resourceUrl, { page: i}),
+                            item: this.normalizeUrl(this.resourceUrl, { page: i }),
                         });
                     }
 
@@ -305,7 +310,7 @@
                     for (let i = this.last_page - 1; i <= this.last_page; i++) {
                         elements.push({
                             key: i,
-                            item: this.normalizeUrl(this.resourceUrl, { page: i}),
+                            item: this.normalizeUrl(this.resourceUrl, { page: i }),
                         });
                     }
 
@@ -317,7 +322,7 @@
                     for (let i = 1; i <= 2; i++) {
                         elements.push({
                             key: i,
-                            item: this.normalizeUrl(this.resourceUrl, { page: i}),
+                            item: this.normalizeUrl(this.resourceUrl, { page: i }),
                         });
                     }
 
@@ -326,7 +331,7 @@
                     for (let i = this.last_page - (onSides + 2); i <= this.last_page; i++) {
                         elements.push({
                             key: i,
-                            item: this.normalizeUrl(this.resourceUrl, { page: i}),
+                            item: this.normalizeUrl(this.resourceUrl, { page: i }),
                         });
                     }
 
@@ -337,7 +342,7 @@
                 for (let i = 1; i <= 2; i++) {
                     elements.push({
                         key: i,
-                        item: this.normalizeUrl(this.resourceUrl, { page: i}),
+                        item: this.normalizeUrl(this.resourceUrl, { page: i }),
                     });
                 }
 
@@ -346,7 +351,7 @@
                 for (let i = this.current_page - onEachSide; i <= this.current_page + onEachSide; i++) {
                     elements.push({
                         key: i,
-                        item: this.normalizeUrl(this.resourceUrl, { page: i}),
+                        item: this.normalizeUrl(this.resourceUrl, { page: i }),
                     });
                 }
 
@@ -355,7 +360,7 @@
                 for (let i = this.last_page - 1; i <= this.last_page; i++) {
                     elements.push({
                         key: i,
-                        item: this.normalizeUrl(this.resourceUrl, { page: i}),
+                        item: this.normalizeUrl(this.resourceUrl, { page: i }),
                     });
                 }
 
@@ -365,10 +370,10 @@
                 return !!(this.config.historyMode && this.$router);
             },
             nextPageUrl() {
-                return this.normalizeUrl(this.resourceUrl, { page: this.current_page + 1});
+                return this.normalizeUrl(this.resourceUrl, { page: this.current_page + 1 });
             },
             prevPageUrl() {
-                return this.normalizeUrl(this.resourceUrl, { page: this.current_page - 1});
+                return this.normalizeUrl(this.resourceUrl, { page: this.current_page - 1 });
             },
         },
         watch: {
@@ -381,7 +386,7 @@
                     this.updateConfig();
                 },
                 deep: true,
-            }
+            },
         },
     };
 </script>
