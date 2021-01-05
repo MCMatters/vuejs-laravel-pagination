@@ -28,7 +28,7 @@
         "build": "yarn run prod && yarn run dev"
     },
     "dependencies": {
-        "axios": "^0.17.1",
+        "axios": "^0.21.1",
         "vue": "2.6.10"
     },
     "devDependencies": {
